@@ -4,7 +4,7 @@ angular.module('redditlistApp')
   .controller('MainCtrl', function ($scope, $http, $interval) {
 
     //call Reddit API, format data
-    var getData = function() {
+    $scope.getData = function() {
       $http.get('http://www.reddit.com/new.json').success(function(data, status) {
         $scope.status = status;
         $scope.list = data.data;
@@ -23,9 +23,9 @@ angular.module('redditlistApp')
       });
     };
 
-    getData();
+    $scope.getData();
 
-    $interval(getData, 60000);
+    $interval($scope.getData, 60000);
 
     //allow user to upvote something -- NOTE: Just for fun.  Not hooked up to Reddit API
     $scope.upVoteThing = function(entry) {
