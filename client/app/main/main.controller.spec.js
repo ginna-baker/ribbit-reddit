@@ -19,37 +19,73 @@ describe('Controller: MainCtrl', function () {
     });
   }));
 
-  it('should receive a status of 200 from Reddit API', function() {
-    $scope.getData();
-    expect($scope.status).toEqual(200);
+  it('should receive a status of 200 from API call', function() {
+    inject(function ($httpBackend) {
+      $httpBackend.whenGET('http://www.reddit.com/new.json')
+        .respond(200, {kind: 'listing', data: {children: [{data: {id: 'dupe', title: 'xyz'}}, {data: {id: 'unique', title: 'abcd'}}, {data: {id: 'dupe', title: 'xyz'}}] } });
+
+      $httpBackend.expectGET('http://www.reddit.com/new.json');
+
+      scope.getData();
+      $httpBackend.flush();
+    });
+
+    expect(scope.status).toEqual(200);
   });
 
-  it('should receive content from the Reddit API', function() {
-    $scope.getData();
-    expect (typeof $scope.list).toBeDefined();
-  });
+  it('should receive an object from the API', function() {
+    inject(function ($httpBackend) {
+      $httpBackend.whenGET('http://www.reddit.com/new.json')
+        .respond(200, {kind: 'listing', data: {children: [{data: {id: 'dupe', title: 'xyz'}}, {data: {id: 'unique', title: 'abcd'}}, {data: {id: 'dupe', title: 'xyz'}}] } });
 
-  it('should receive an object from the Reddit API', function() {
-    $scope.getData();
-    expect(typeof $scope.list).toEqual(Object);
+      $httpBackend.expectGET('http://www.reddit.com/new.json');
+
+      scope.getData();
+      $httpBackend.flush();
+    });
+    expect(typeof scope.list).toEqual('object');
   });
 
   it('should attach a list of things to the scope', function() {
-    $scope.getData();
-    expect($scope.list.children.length).toExceed(10);
+    inject(function ($httpBackend) {
+      $httpBackend.whenGET('http://www.reddit.com/new.json')
+        .respond(200, {kind: 'listing', data: {children: [{data: {id: 'dupe', title: 'xyz'}}, {data: {id: 'unique', title: 'abcd'}}, {data: {id: 'dupe', title: 'xyz'}}] } });
+
+      $httpBackend.expectGET('http://www.reddit.com/new.json');
+
+      scope.getData();
+      $httpBackend.flush();
+    });
+    expect(scope.list.children.length > 0).toBeTruthy();
   });
 
-  it('should return a posting date/time within 12 hours of current date/time', function () {
-    $scope.getData();
-    expect(Date(now) - 43200000).toBeLessThan($scope.list.children.created);
-    expect($scope.list.children.created).toBeLessThan(Date(now) + 43200000);
+  it('should filter duplicates', function() {
+    inject(function ($httpBackend) {
+      $httpBackend.whenGET('http://www.reddit.com/new.json')
+        .respond(200, {kind: 'listing', data: {children: [{data: {id: 'dupe', title: 'xyz', created: 1419359044}}, {data: {id: 'unique', title: 'abcd', created: 1419359042}}, {data: {id: 'dupe', title: 'xyz', created: 1419359044}}] } });
+
+      $httpBackend.expectGET('http://www.reddit.com/new.json');
+
+      scope.getData();
+      $httpBackend.flush();
+    });
+    expect(scope.list).toEqual({children: [ {data: {id: 'dupe', title: 'xyz', created: new Date(1419359044000).toLocaleDateString() + ' at ' + new Date(1419359044000).toLocaleTimeString()}}, {data: {id: 'unique', title: 'abcd', created: new Date(1419359042000).toLocaleDateString() + ' at ' + new Date(1419359042000).toLocaleTimeString()}} ]});
   });
 
   it('should sort alphabetically by title', function() {
-    $scope.getData();
-    $scope.optionDropdown === "title";
-    expect($scope.list.children[7].data.title.toLowerCase()).toBeLessThan( scope.list.children[19].data.title.toLowerCase());
-    expect($scope.list.children[15].data.title.toLowerCase()).toBeLessThan($scope.list.children[22].data.title.toLowerCase());
+    inject(function ($httpBackend) {
+      $httpBackend.whenGET('http://www.reddit.com/new.json')
+        .respond(200, {kind: 'listing', data: {children: [{data: {id: 'dupe', title: 'xyz', created: 1419359044}}, {data: {id: 'unique', title: 'abcd', created: 1419359042}} ] }});
+
+      $httpBackend.expectGET('http://www.reddit.com/new.json');
+
+      scope.getData();
+      $httpBackend.flush();
+    });
+
+    scope.optionDropdown = 'title';
+    scope.sortResults();
+    expect(scope.list.children[0].data.title.toLowerCase()).toBeLessThan( scope.list.children[1].data.title.toLowerCase());
   });
 
 });

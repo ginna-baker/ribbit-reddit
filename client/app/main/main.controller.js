@@ -3,31 +3,41 @@
 angular.module('redditlistApp')
   .controller('MainCtrl', function ($scope, $http, $interval) {
 
-    //call Reddit API, format data
+    //call Reddit API
     $scope.getData = function() {
       $http.get('http://www.reddit.com/new.json').success(function(data, status) {
         $scope.status = status;
         $scope.list = data.data;
-        console.log($scope.list.children);
-        $scope.list.children.forEach(function(post) {
-          for (var i=0; i<$scope.list.children.length; i++) {
-            if (post.data.id === $scope.list.children[i].data.id) {
-              $scope.list.children.splice(i, 1);
-            }
-          }
-          if (post.data.title.length > 55) {
-            post.data.title = post.data.title.substr(0, 55) + '...';
-          }
-          post.data.created = (new Date(post.data.created)).getMonth();
-        });
+        $scope.modifyData();
       });
+    };
+
+    //Format data to send to DOM
+    $scope.modifyData = function() {
+      var dupeHash = {};
+      var removeDupes = function(element) {
+        if (!dupeHash[element.data.id]) {
+          dupeHash[element.data.id] = true;
+          return element;
+        }
+      };
+
+      $scope.list.children = $scope.list.children.filter(removeDupes);
+
+      $scope.list.children.forEach(function(post) {
+        if (post.data.title.length > 55) {
+          post.data.title = post.data.title.substr(0, 55) + '...';
+        }
+        post.data.created = new Date(post.data.created*1000).toLocaleDateString() + ' at ' + new Date(post.data.created*1000).toLocaleTimeString();
+      });
+
     };
 
     $scope.getData();
 
-    $interval($scope.getData, 60000);
+    $interval($scope.getData(), 60000);
 
-    //allow user to upvote something -- NOTE: Just for fun.  Not hooked up to Reddit API
+    //allow user to upvote something -- NOTE: Just for fun/sorting.  Not hooked up to Reddit API
     $scope.upVoteThing = function(entry) {
       entry.data.ups++;
     };
@@ -79,10 +89,10 @@ angular.module('redditlistApp')
 
       if ($scope.optionDropdown === 'date') {
         $scope.list.children.sort(function(a, b) {
-          if (a.data.created_utc > b.data.created_utc) {
+          if (a.data.created > b.data.created) {
             return -1;
           }
-          if (a.data.created_utc < b.data.created_utc) {
+          if (a.data.created < b.data.created) {
             return 1;
           }
           return 0; //default return value (no sorting)
