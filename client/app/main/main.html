@@ -1,0 +1,39 @@
+<header class="hero-unit" id="banner">
+  <div class="container">
+    <h1>Ribbit, Reddit!</h1>
+    <p class="lead">View our reddit feed</p>
+    <img src="assets/images/frogtongue.png" id="titleImage"/>
+  </div>
+</header>
+
+<div id="sortList" class="container">
+  <form>
+    <h3>Sort Results</h3>
+    <select ng-model="optionDropdown"  ng-change="sortResults()">
+    <option ng-repeat="s in selected">{{s.text}}</option>
+    </select>
+  </form>
+</div>
+
+<div class="container" id="dataBody">
+  <div class="row">
+      <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-model="list" ng-repeat="entry in list.children">
+        <li class="listItem">
+          <span>{{entry.data.ups}}</span>
+          <span id="upVoteButton"><i class="fa fa-chevron-up" ng-click="upVoteThing(entry)"></i></span>
+          <span id="authorSpan">{{entry.data.author}}:
+          <span>{{entry.data.created_utc}}
+            <a href="{{entry.data.url}}">{{entry.data.title}}</a>
+          </span>
+        </li>
+      </ul>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+      <p>Ribbit Reddit v.0.0.0 |
+        <a href="https://twitter.com/ginnabaker">@ginnabaker</a> |
+         <a href="https://github.com/ginna-baker">Github</a></p>
+  </div>
+</footer>
